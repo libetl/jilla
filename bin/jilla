@@ -6,7 +6,6 @@ var request = require('superagent');
 var span = require('span');
 var JSONStore = require('json-store');
 var askFor = require('ask-for');
-var http = require('http');
 require('superagent-proxy')(request);
 
 var proxy = process.env.http_proxy;
@@ -40,6 +39,13 @@ load(function(_cfg, _db) {
   if (cmd == 'statuses')  return statuses();
   usage();
 });
+
+function proxyIfNeeded(request) {
+  if (proxy != undefined && proxy != ""){
+    return request.proxy (proxy);
+  }
+  return request;
+}
 
 function config() {
   configBasicAuth();
@@ -108,9 +114,9 @@ function setStatus (obj, args){
 }
 
 function ls() {
-  request
+  proxyIfNeeded (request
     .get (cfg.url + 'rest/api/2/search?jql=category="'+cfg.category+'"AND+status+in+(Open,"In+Progress",Reopened)+order+by+due+ASC,+priority+DESC')
-    .proxy (proxy)
+    )
     .set('Content-Type', 'application/json')
     .auth(cfg.user, cfg.password)
     .end(function(res) {
@@ -158,9 +164,9 @@ function stop(issue, logAlso) {
 function log(issue, time) {
   time = Math.floor(span(time)/1000);
   if (time < 60) time = 60;
-  request
+  proxyIfNeeded (request
     .post(cfg.url+'rest/api/2/issue/'+issue+'/worklog')
-    .proxy (proxy)
+    )
     .send({timeSpentSeconds: time})
     .auth(cfg.user, cfg.password)
     .end(function(res) {
@@ -201,9 +207,9 @@ function needInfo(issue) {
 
 function search(term) {
   var nbfound = 0;
-  request
+  proxyIfNeeded (request
     .get(cfg.url+'rest/api/2/search?jql=category="'+cfg.category+'"AND+%28+summary+~+"'+term+'"+OR+description+~+"'+term+'"+OR+comment+~+"'+term+'"+%29+order+by+due+ASC,+priority+DESC')
-    .proxy (proxy)
+    )
     .set('Content-Type', 'application/json')
     .auth(cfg.user, cfg.password)
     .end(function(res) {
@@ -223,9 +229,9 @@ function search(term) {
       }
     })
   ;
-  request
+  proxyIfNeeded (request
     .get(cfg.url+'rest/api/2/search?jql=category="'+cfg.category+'"AND+issueKey+=+"'+term+'"+order+by+due+ASC,+priority+DESC')
-    .proxy (proxy)
+    )
     .set('Content-Type', 'application/json')
     .auth(cfg.user, cfg.password)
     .end(function(res) {
@@ -246,9 +252,9 @@ function search(term) {
 
     })
   ;
-  request
+  proxyIfNeeded (request
     .get(cfg.url+'rest/api/2/search?jql=category="'+cfg.category+'"AND+project+=+"'+term+'"+order+by+due+ASC,+priority+DESC')
-    .proxy (proxy)
+    )
     .set('Content-Type', 'application/json')
     .auth(cfg.user, cfg.password)
     .end(function(res) {
@@ -268,9 +274,9 @@ function search(term) {
       }
     })
   ;
-  request
+  proxyIfNeeded (request
     .get(cfg.url+'rest/api/2/search?jql=category+=+"'+term+'"+order+by+due+ASC,+priority+DESC')
-    .proxy (proxy)
+    )
     .set('Content-Type', 'application/json')
     .auth(cfg.user, cfg.password)
     .end(function(res) {
@@ -294,9 +300,9 @@ function search(term) {
 
 function describe(issue) {
   if (!issue) return usage();
-  request
+    proxyIfNeeded (request
     .get(cfg.url+'rest/api/2/issue/'+issue)
-    .proxy (proxy)
+    )
     .auth(cfg.user, cfg.password)
     .end(function(res) {
       if (!res.ok) return console.log(
@@ -335,9 +341,9 @@ function describe(issue) {
 // list can be reversed so that newest are at the top
 function comments(issue, reverse) {
   if (!issue) return usage();
-  request
+  proxyIfNeeded (request
     .get(cfg.url+'rest/api/2/issue/'+issue)
-    .proxy (proxy)
+    )
     .auth(cfg.user, cfg.password)
     .end(function(res) {
       if (!res.ok) return console.log(
@@ -360,9 +366,9 @@ function comments(issue, reverse) {
 // List subtasks of an issue
 function subtasks(issue) {
   if (!issue) return usage();
-  request
+  proxyIfNeeded (request
     .get(cfg.url+'rest/api/2/issue/'+issue)
-    .proxy (proxy)
+    )
     .auth(cfg.user, cfg.password)
     .end(function(res) {
       if (!res.ok) return console.log(
@@ -391,9 +397,9 @@ function comment(issue, messageList) {
 
 // Helper to make POST request to JIRA API with comment
 function commentOn(issue, message) {
-  request
+  proxyIfNeeded (request
     .post(cfg.url+'rest/api/2/issue/'+issue.toUpperCase()+'/comment/')
-    .proxy(proxy)
+    )
     .auth(cfg.user, cfg.password)
     .send({ body: addEscapes(message) })
     .end(function(res) {
@@ -424,9 +430,9 @@ function assign(issue, userFragment) {
         'No user found with fragment, "' + userFragment + '".'
       );
     }
-    request
+    proxyIfNeeded (request
       .put(cfg.url+'rest/api/2/issue/'+issueUpper+'/assignee')
-      .proxy (proxy)
+      )
       .auth(cfg.user, cfg.password)
       .send({ 'name': user.name })
       .end(function(res) {
@@ -439,9 +445,9 @@ function assign(issue, userFragment) {
 }
 
 function sprint (){
-    request
+    proxyIfNeeded (request
       .get(cfg.url+'rest/greenhopper/1.0/rapidview')
-      .proxy (proxy)
+      )
       .auth(cfg.user, cfg.password).end(function(res) {
         var id = -1;
         for (var i in res.body.views){
@@ -452,9 +458,9 @@ function sprint (){
         if (id == -1){
           return console.log ("Sprint team name incorrect, please config again");
         }
-        request
+        proxyIfNeeded (request
       .get(cfg.url+'rest/greenhopper/1.0/sprintquery/' + id)
-      .proxy (proxy)
+      )
       .auth(cfg.user, cfg.password).end(function(res) {
           var sprintid = -1;
           for (var i in res.body.sprints){
@@ -465,9 +471,9 @@ function sprint (){
         if (sprintid == -1){
           return console.log ("No sprint is currently active");
         }
-        request
+        proxyIfNeeded (request
       .get(cfg.url+'rest/greenhopper/1.0/rapid/charts/sprintreport?rapidViewId='+id+'&sprintId='+sprintid)
-      .proxy (proxy)
+      )
       .auth(cfg.user, cfg.password).end(function(res) {
       var completedIssues = [];
       var incompletedIssues = [];
@@ -527,9 +533,9 @@ function usage() {
 }
 
 function transition(issue, id, cb) {
-  request
+  proxyIfNeeded (request
     .post(cfg.url+'rest/api/2/issue/'+issue+'/transitions')
-    .proxy (proxy)
+    )
     .send({transition: {id: id}})
     .auth(cfg.user, cfg.password)
     .end(function(res) {
@@ -542,9 +548,9 @@ function transition(issue, id, cb) {
 
 // Get a transition ID, given an issue and the transition's name.
 function getTransitionCode(issue, transitionName, success) {
-  request
+  proxyIfNeeded (request
     .get(cfg.url+'rest/api/2/issue/'+issue+'/transitions')
-    .proxy (proxy)
+    )
     .auth(cfg.user, cfg.password)
     .end(function(res) {
       var transitionID;
@@ -564,9 +570,9 @@ function getTransitionCode(issue, transitionName, success) {
 
 // Get all users matching a given fragment of text.
 function searchUsers(userFragment, callback) {
-  request
+  proxyIfNeeded (request
     .get(cfg.url+'rest/api/2/user/search/?username='+userFragment)
-    .proxy (proxy)
+    )
     .auth(cfg.user, cfg.password)
     .end(function(res) {
       var users;
