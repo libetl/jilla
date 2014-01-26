@@ -52,9 +52,9 @@ function config() {
 }
 
 function statusesObject (func, issue, args){
-  request
+  proxyIfNeeded (request
     .get (cfg.url + 'rest/api/2/' + (issue == undefined ? 'status': 'issue/' + issue + '/transitions'))
-    .proxy (proxy)
+    )
     .set('Content-Type', 'application/json')
     .auth(cfg.user, cfg.password)
     .end(function(res) {
@@ -76,9 +76,9 @@ function statuses (){
 }
 
 function currentStatus (issueKey, func){
-   request
+   proxyIfNeeded (request
     .get (cfg.url + 'rest/api/2/issue/' + issueKey)
-    .proxy (proxy)
+    )
     .set('Content-Type', 'application/json')
     .auth(cfg.user, cfg.password)
     .end(function(res) {
