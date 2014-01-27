@@ -465,16 +465,23 @@ function sprint (){
           var sprintid = -1;
           for (var i in res.body.sprints){
             if (res.body.sprints [i].state == "ACTIVE"){
+              printSprint (id, res.body.sprints [i].id);
               sprintid = res.body.sprints [i].id;
             }
           }
         if (sprintid == -1){
           return console.log ("No sprint is currently active");
         }
+      });
+      });
+  }
+
+  function printSprint (id, sprintid){
         proxyIfNeeded (request
       .get(cfg.url+'rest/greenhopper/1.0/rapid/charts/sprintreport?rapidViewId='+id+'&sprintId='+sprintid)
       )
       .auth(cfg.user, cfg.password).end(function(res) {
+      console.log (createIndent (process.stdout.columns, '\u2581'));
       var completedIssues = [];
       var incompletedIssues = [];
       var puntedIssues = [];
@@ -500,8 +507,6 @@ function sprint (){
       table += "Incompleted Issues : " + (incompletedIssues.length == 0 ? "0" : incompletedIssues) + "\n";
       table += "Punted Issues      : " + (puntedIssues.length == 0 ? "0" : puntedIssues) + "\n";
       console.log (table);
-      });
-      });
       });
 }
 
