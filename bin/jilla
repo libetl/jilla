@@ -768,6 +768,8 @@ function prettyPrint(string, len) {
     lines [i] = lines[i].replace (/\*([^*]+)\*/, "\033[1m$1\033[0m");
     lines [i] = lines[i].replace (/^(\s*)--/, "      \u25A0");
     lines [i] = lines[i].replace (/^(\s*)-/, "\u25A0");
+    lines [i] = lines[i].replace (/(\s+)\(n\)(\s+)/, "\u2716");
+    lines [i] = lines[i].replace (/(\s+)\(y\)(\s+)/, "\u2714");
 
     if (lines[i].length > len) {
       chars = lines[i].split('');
