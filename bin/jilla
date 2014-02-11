@@ -763,13 +763,23 @@ function prettyPrint(string, len) {
     lines [i] = lines[i].replace (/(\s*)h2\.\s*([^\n]*)/, "$1 \033[4;7;40m$2\033[0;24;27;37m");
     lines [i] = lines[i].replace (/(\s*)h3\.\s*([^\n]*)/, "$1  \033[1;4m$2\033[0;21;24m");
     lines [i] = lines[i].replace (/(\s*)h4\.\s*([^\n]*)/, "$1   \033[4m$2\033[0;24m");
+    lines [i] = lines[i].replace (/^(\s*)_([^_\n]*)_/, "\033[7m$2\033[0m");
     lines [i] = lines[i].replace (/(\s*)h5\.\s*([^\n]*)/, function(v) { return "   \033[0m" + v.toUpperCase().substring (3); });
     lines [i] = lines[i].replace (/(\s*)#\s+([^#\n]*)/, function (v) {return "[" + (++j) + "]" + v.substring (1);});
     lines [i] = lines[i].replace (/\*([^*]+)\*/, "\033[1m$1\033[0m");
+    lines [i] = lines[i].replace (/^(\s*)----/, "                  \u25A0");
+    lines [i] = lines[i].replace (/^(\s*)---/, "            \u25A0");
     lines [i] = lines[i].replace (/^(\s*)--/, "      \u25A0");
     lines [i] = lines[i].replace (/^(\s*)-/, "\u25A0");
-    lines [i] = lines[i].replace (/(\s+)\(n\)(\s+)/, "\u2716");
-    lines [i] = lines[i].replace (/(\s+)\(y\)(\s+)/, "\u2714");
+    lines [i] = lines[i].replace (/(\s*)\((n|N)\)(\s+)/, "\u2716");
+    lines [i] = lines[i].replace (/(\s*)\((y|Y)\)(\s+)/, "\u2714");
+    lines [i] = lines[i].replace (/{color:red}([^{]*){color}/, "\033[31m$1\033[37m");
+    lines [i] = lines[i].replace (/{color:green}([^{]*){color}/, "\033[32m$1\033[37m");
+    lines [i] = lines[i].replace (/{color:yellow}([^{]*){color}/, "\033[33m$1\033[37m");
+    lines [i] = lines[i].replace (/{color:blue}([^{]*){color}/, "\033[36m$1\033[37m");
+    lines [i] = lines[i].replace (/{color:magenta}([^{]*){color}/, "\033[35m$1\033[37m");
+    lines [i] = lines[i].replace (/(\s*)\((off)\)(\s+)/i, "\u2688");
+    lines [i] = lines[i].replace (/(\s*)\((on)\)(\s+)/i, "\u2600");
 
     if (lines[i].length > len) {
       chars = lines[i].split('');
@@ -817,6 +827,8 @@ function indent(text, by) {
   for (var i = 0; i < lines.length; i++) {
     if (lines [i].match (/^\[[0-9]+\]/)){
       lines[i] = spaces2 + lines[i];
+    }else if (lines [i].substring (0, 4) === "\033[7m"){
+      lines[i] = spaces + lines[i];
     }else if (lines [i].substring (0, 1) === "\u25A0"){
       lines[i] = spaces1 + lines[i];
     }else if (!lines [i].match (/^\s*\033.*/)){
