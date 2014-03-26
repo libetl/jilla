@@ -318,7 +318,7 @@ function describe(issue) {
         ['Status:', field(fields, 'status.name')],
         ['Reporter:', formatUser(fields.reporter)],
         ['Assignee:', formatUser(fields.assignee)],
-        ['Labels:', prettyPrint(fields.labels.join(', '), 66)],
+        ['Labels:', prettyPrint((fields.labels ? fields.labels.join(', ') : ""), 66)],
         ['Subtasks:', subtasks.length],
         ['Comments:', comments.length],
         ['Description:']
